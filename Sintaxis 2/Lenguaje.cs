@@ -387,11 +387,18 @@ namespace Sintaxis_2
         {
             match("printf");
             match("(");
-            if (ejecuta)
-            {
-                Console.Write(getContenido());
-            }
-            match(Tipos.Cadena);
+            //Quitar comillas
+        string contenido=getContenido();
+        int pos =contenido.IndexOf('"');
+        contenido= contenido.Substring(pos + 1, contenido.Length - pos - 2);
+     if (ejecuta)
+     {
+       Console.WriteLine(contenido);
+     }
+     match(Tipos.Cadena);
+
+        Console.WriteLine();
+
             if (getContenido() == ",")
             {
                 match(",");
