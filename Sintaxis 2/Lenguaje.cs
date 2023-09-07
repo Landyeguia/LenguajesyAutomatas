@@ -388,12 +388,20 @@ namespace Sintaxis_2
             match("printf");
             match("(");
             //Quitar comillas
+            //Pasamos la cadena a un String
         string contenido=getContenido();
-        int pos =contenido.IndexOf('"');
-        contenido= contenido.Substring(pos + 1, contenido.Length - pos - 2);
+        int pos =contenido.IndexOf('"'); //en esta linea, se contea la cadena con posicion --> pos, hasta encontrar las comillas
+        if (pos >= 0)
+        {
+          contenido= contenido.Substring(pos + 1, contenido.Length - pos - 2);//posicion
+         // Reemplazamos "\\n" con Environment.NewLine para los saltos de línea
+        contenido = contenido.Replace("\\n", Environment.NewLine);
+         // Reemplazamos "\\t" con Environment.NewLine para los saltos de línea
+        contenido = contenido.Replace("\\t", "\t");
+        }
      if (ejecuta)
      {
-       Console.WriteLine(contenido);
+    Console.WriteLine(contenido);
      }
      match(Tipos.Cadena);
 
