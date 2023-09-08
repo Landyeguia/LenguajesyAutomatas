@@ -322,6 +322,7 @@ namespace Sintaxis_2
                 throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
             }
             match(Tipos.Identificador);
+            stack.Push(getValor(getContenido()));
             if (getContenido() == "++")
             {
                 match("++");
@@ -410,6 +411,7 @@ namespace Sintaxis_2
     }
 
     match(Tipos.Cadena);
+    stack.Push(getValor(getContenido()));
 
     Console.WriteLine();
 
@@ -427,28 +429,44 @@ namespace Sintaxis_2
     match(";");
 }
         //Scanf -> scanf(cadena,&Identificador);
-        private void Scanf(bool ejecuta)
+private void Scanf(bool ejecuta)
+{
+    match("scanf");
+    match("(");
+    match(Tipos.Cadena);
+    match(",");
+    match("&");
+    if (!Existe(getContenido()))
+    {
+        throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
+    }
+
+    string variable = getContenido();
+    match(Tipos.Identificador);
+    if (ejecuta)
+    {
+        string captura = Console.ReadLine() ?? ""; // Usar una cadena vacía si la entrada es nula
+        if (!string.IsNullOrEmpty(captura))
         {
-            match("scanf");
-            match("(");
-            match(Tipos.Cadena);
-            match(",");
-            match("&");
-            if (!Existe(getContenido()))
+            try
             {
-                throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
-            }
-            string variable = getContenido();
-            match(Tipos.Identificador);
-            if (ejecuta)
-            {
-                string captura = "" + Console.ReadLine();
                 float resultado = float.Parse(captura);
-                Modifica(variable,resultado);
+                Modifica(variable, resultado);
             }
-            match(")");
-            match(";");
+            catch (FormatException)
+            {
+                throw new Error("de conversión, la entrada no es un número decimal válido", log, linea, columna);
+            }
         }
+        else
+        {
+            throw new Error("de lectura, la entrada no puede ser nula o vacía", log, linea, columna);
+        }
+    }
+    match(")");
+    match(";");
+}
+
         //Main -> void main() BloqueInstrucciones
         private void Main(bool ejecuta)
         {
@@ -489,21 +507,31 @@ namespace Sintaxis_2
         }
         //PorFactor -> (OperadorFactor Factor)?
         private void PorFactor()
+{
+    if (getClasificacion() == Tipos.OperadorFactor)
+    {
+        string operador = getContenido();
+        match(Tipos.OperadorFactor);
+        Factor();
+        log.Write(" " + operador);
+        float R2 = stack.Pop();
+        float R1 = stack.Pop();
+        
+        if (operador == "*")
         {
-            if (getClasificacion() == Tipos.OperadorFactor)
-            {
-                string operador = getContenido();
-                match(Tipos.OperadorFactor);
-                Factor();
-                log.Write(" " + operador);
-                float R2 = stack.Pop();
-                float R1 = stack.Pop();
-                if (operador == "*")
-                    stack.Push(R1*R2);
-                else
-                    stack.Push(R1/R2);
-            }
+            stack.Push(R1 * R2);
         }
+        else if (operador == "/")
+        {
+            stack.Push(R1 / R2);
+        }
+        else if (operador == "%") // Agregar la operación de módulo (%)
+        {
+            stack.Push(R1 % R2);
+        }
+    }
+}
+
         //Factor -> numero | identificador | (Expresion)
         private void Factor()
         {
@@ -520,6 +548,7 @@ namespace Sintaxis_2
                     throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
                 }
                 match(Tipos.Identificador);
+                stack.Push(getValor(getContenido()));
             }
             else
             {
