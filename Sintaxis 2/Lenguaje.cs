@@ -382,43 +382,50 @@ namespace Sintaxis_2
             }
 
         }
-        //Printf -> printf(cadena(,Identificador)?);
         private void Printf(bool ejecuta)
-        {
-            match("printf");
-            match("(");
-            //Quitar comillas
-            //Pasamos la cadena a un String
-        string contenido=getContenido();
-        int pos =contenido.IndexOf('"'); //en esta linea, se contea la cadena con posicion --> pos, hasta encontrar las comillas
-        if (pos >= 0)
-        {
-          contenido= contenido.Substring(pos + 1, contenido.Length - pos - 2);//posicion
-         // Reemplazamos "\\n" con Environment.NewLine para los saltos de línea
+{
+    match("printf");
+    match("(");
+
+    // Quitamos comillas
+    // Pasamos la cadena a un String
+    string contenido = getContenido();
+    int pos = contenido.IndexOf('"');
+
+    // Verificamos si se encontraron comillas
+    if (pos >= 0)
+    {
+        contenido = contenido.Substring(pos + 1, contenido.Length - pos - 2);
+
+        // Reemplazamos "\\n" con Environment.NewLine para los saltos de línea
         contenido = contenido.Replace("\\n", Environment.NewLine);
-         // Reemplazamos "\\t" con Environment.NewLine para los saltos de línea
+
+        // Reemplazamos "\\t" con "\t" para las tabulaciones
         contenido = contenido.Replace("\\t", "\t");
-        }
-     if (ejecuta)
-     {
-    Console.WriteLine(contenido);
-     }
-     match(Tipos.Cadena);
 
-        Console.WriteLine();
-
-            if (getContenido() == ",")
-            {
-                match(",");
-                if (!Existe(getContenido()))
-                {
-                    throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
-                }
-                match(Tipos.Identificador);
-            }
-            match(")");
-            match(";");
+        if (ejecuta)
+        {
+            Console.WriteLine(contenido);
         }
+    }
+
+    match(Tipos.Cadena);
+
+    Console.WriteLine();
+
+    if (getContenido() == ",")
+    {
+        match(",");
+        if (!Existe(getContenido()))
+        {
+            throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
+        }
+        match(Tipos.Identificador);
+    }
+
+    match(")");
+    match(";");
+}
         //Scanf -> scanf(cadena,&Identificador);
         private void Scanf(bool ejecuta)
         {
