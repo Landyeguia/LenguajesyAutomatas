@@ -202,64 +202,74 @@ namespace Sintaxis_2
             }
         }
         //Asignacion -> identificador = Expresion;
-        private void Asignacion(bool ejecuta)
-        {
-            if (!Existe(getContenido()))
-            {
-                throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
-            }
-            log.Write(getContenido() + " = ");
-            string variable = getContenido();
-            match(Tipos.Identificador);
-            if (getContenido() == "=")
-            {
-                match("=");
-                Expresion();
-            }
-            else if (getClasificacion() == Tipos.IncrementoTermino)
-            {
-                if (getContenido() == "++")
-                {
-                    match("++");
-                }
-                else
-                {
-                    match("--");
-                }
-            }
-            else if (getClasificacion() == Tipos.IncrementoFactor)
-            {
+       //Asignacion -> identificador = Expresion;
+private void Asignacion(bool ejecuta)
+{
+    if (!Existe(getContenido()))
+    {
+        throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
+    }
 
-                if (getContenido() == "+=")
-                {
-                    match("+=");
-                }
-                else if (getContenido() == "-=")
-                {
-                    match("-=");
-                }
-                else if (getContenido() == "*=")
-                {
-                    match("*=");
-                }
-                else if (getContenido() == "/=")
-                {
-                    match("/=");
-                }
-                else if (getContenido() == "%=")
-                {
-                    match("%=");
-                }
-                Expresion();
-            }
-            float resultado = stack.Pop();
-            log.WriteLine(" = " + resultado);
-            if (ejecuta)
-            {
-                Modifica(variable,resultado);
-            }
-            match(";");
+    string variable = getContenido();
+    match(Tipos.Identificador);
+
+    if (getContenido() == "=")
+    {
+        match("=");
+        Expresion();
+        float valor = stack.Pop();
+        ModificarVariable(variable, valor);
+    }
+    else if (getContenido() == "++")
+    {
+        match("++");
+        IncrementarVariable(variable, 1);
+    }
+    else if (getContenido() == "--")
+    {
+        match("--");
+        IncrementarVariable(variable, -1);
+    }
+    else if (getContenido() == "+=")
+    {
+        match("+=");
+        Expresion();
+        float valor = stack.Pop();
+        ModificarVariable(variable, getValor(variable) + valor);
+    }
+    else if (getContenido() == "-=")
+    {
+        match("-=");
+        Expresion();
+        float valor = stack.Pop();
+        ModificarVariable(variable, getValor(variable) - valor);
+    }
+    // Agrega casos para otros operadores de asignación aquí
+    else
+    {
+        throw new Error("de sintaxis, se esperaba un operador de asignación válido", log, linea, columna);
+    }
+
+    match(";");
+}
+
+private void IncrementarVariable(string variable, float incremento)
+{
+    float valor = getValor(variable);
+    ModificarVariable(variable, valor + incremento);
+}
+
+private void ModificarVariable(string variable, float nuevoValor)
+{
+    foreach (Variable v in lista)
+    {
+        if (v.getNombre() == variable)
+        {
+            v.setValor(nuevoValor);
+            return;
         }
+    }
+}
         //While -> while(Condicion) BloqueInstrucciones | Instruccion
         private void While(bool ejecuta)
         {
@@ -353,36 +363,41 @@ namespace Sintaxis_2
             }
         }
         //If -> if (Condicion) BloqueInstrucciones | Instruccion (else BloqueInstrucciones | Instruccion)?
-        private void If(bool ejecuta)
+ // ...
+
+//If -> if (Condicion) BloqueInstrucciones (else BloqueInstrucciones | Instruccion)?
+private void If(bool ejecuta)
+{
+    match("if");
+    match("(");
+    bool evaluacion = Condicion() && ejecuta;
+    Console.WriteLine(evaluacion);
+    match(")");
+    if (getContenido() == "{")
+    {
+        BloqueInstrucciones(evaluacion);
+    }
+    else
+    {
+        Instruccion(evaluacion);
+    }
+
+    // Aquí agregamos el código para manejar el "else"
+    if (getContenido() == "else")
+    {
+        match("else");
+
+        if (getContenido() == "{")
         {
-            match("if");
-            match("(");
-            bool evaluacion = Condicion() && ejecuta;
-            Console.WriteLine(evaluacion);
-            match(")");
-            if (getContenido() == "{")
-            {
-                BloqueInstrucciones(evaluacion);
-            }
-            else
-            {
-                Instruccion(evaluacion);
-            }
-            if (getContenido() == "else")
-            {
-                match("else");
-
-                if (getContenido() == "{")
-                {
-                    BloqueInstrucciones(ejecuta);
-                }
-                else
-                {
-                    Instruccion(ejecuta);
-                }
-            }
-
+            BloqueInstrucciones(!ejecuta);
         }
+        else
+        {
+            Instruccion(!ejecuta);
+        }
+    }
+}
+
         private void Printf(bool ejecuta)
 {
     match("printf");
@@ -406,23 +421,24 @@ namespace Sintaxis_2
 
         if (ejecuta)
         {
-            Console.WriteLine(contenido);
+            Console.Write(contenido);
         }
     }
-
     match(Tipos.Cadena);
-    stack.Push(getValor(getContenido()));
-
-    Console.WriteLine();
+    // stack.Push(getValor(getContenido()));
 
     if (getContenido() == ",")
     {
+        Console.Write(" ");
         match(",");
         if (!Existe(getContenido()))
         {
             throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
+        }else
+        {
+            Console.WriteLine(getValor(getContenido()));
+            match(Tipos.Identificador);
         }
-        match(Tipos.Identificador);
     }
 
     match(")");
@@ -431,22 +447,22 @@ namespace Sintaxis_2
         //Scanf -> scanf(cadena,&Identificador);
 private void Scanf(bool ejecuta)
 {
-    match("scanf");
+    match("scanf");//Valida el Scanf
     match("(");
-    match(Tipos.Cadena);
+    match(Tipos.Cadena);//Busca la cadena ingresada
     match(",");
-    match("&");
+    match("&");//Termina la validacion del scanf
     if (!Existe(getContenido()))
     {
         throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
     }
 
-    string variable = getContenido();
+    string variable = getContenido();// Guarda la variable
     match(Tipos.Identificador);
     if (ejecuta)
     {
-        string captura = Console.ReadLine() ?? ""; // Usar una cadena vacía si la entrada es nula
-        if (!string.IsNullOrEmpty(captura))
+        string captura = Console.ReadLine();//Guardamos captura
+        if (captura != null)// Verifica que captura no este vacio
         {
             try
             {
@@ -460,7 +476,7 @@ private void Scanf(bool ejecuta)
         }
         else
         {
-            throw new Error("de lectura, la entrada no puede ser nula o vacía", log, linea, columna);
+            throw new Error("de lectura, la entrada no puede ser nula", log, linea, columna);
         }
     }
     match(")");
@@ -475,6 +491,7 @@ private void Scanf(bool ejecuta)
             match("(");
             match(")");
             BloqueInstrucciones(ejecuta);
+            // Mostrar los valores de las variables al final
         }
         //Expresion -> Termino MasTermino
         private void Expresion()
@@ -547,8 +564,9 @@ private void Scanf(bool ejecuta)
                 {
                     throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
                 }
-                match(Tipos.Identificador);
+               
                 stack.Push(getValor(getContenido()));
+                match(Tipos.Identificador);
             }
             else
             {
