@@ -180,7 +180,7 @@ namespace Sintaxis_2
             {
                 Scanf(ejecuta);
             }
-             else if (getContenido() == "if")
+            else if (getContenido() == "if")
             {
                 If(ejecuta);
             }
@@ -202,74 +202,74 @@ namespace Sintaxis_2
             }
         }
         //Asignacion -> identificador = Expresion;
-       //Asignacion -> identificador = Expresion;
-private void Asignacion(bool ejecuta)
-{
-    if (!Existe(getContenido()))
-    {
-        throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
-    }
-
-    string variable = getContenido();
-    match(Tipos.Identificador);
-
-    if (getContenido() == "=")
-    {
-        match("=");
-        Expresion();
-        float valor = stack.Pop();
-        ModificarVariable(variable, valor);
-    }
-    else if (getContenido() == "++")
-    {
-        match("++");
-        IncrementarVariable(variable, 1);
-    }
-    else if (getContenido() == "--")
-    {
-        match("--");
-        IncrementarVariable(variable, -1);
-    }
-    else if (getContenido() == "+=")
-    {
-        match("+=");
-        Expresion();
-        float valor = stack.Pop();
-        ModificarVariable(variable, getValor(variable) + valor);
-    }
-    else if (getContenido() == "-=")
-    {
-        match("-=");
-        Expresion();
-        float valor = stack.Pop();
-        ModificarVariable(variable, getValor(variable) - valor);
-    }
-    // Agrega casos para otros operadores de asignación aquí
-    else
-    {
-        throw new Error("de sintaxis, se esperaba un operador de asignación válido", log, linea, columna);
-    }
-
-    match(";");
-}
-
-private void IncrementarVariable(string variable, float incremento)
-{
-    float valor = getValor(variable);
-    ModificarVariable(variable, valor + incremento);
-}
-
-private void ModificarVariable(string variable, float nuevoValor)
-{
-    foreach (Variable v in lista)
-    {
-        if (v.getNombre() == variable)
+        //Asignacion -> identificador = Expresion;
+        private void Asignacion(bool ejecuta)
         {
-            v.setValor(nuevoValor);
-            return;
+            if (!Existe(getContenido()))
+            {
+                throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
+            }
+
+            string variable = getContenido();
+            match(Tipos.Identificador);
+
+            if (getContenido() == "=")
+            {
+                match("=");
+                Expresion();
+                float valor = stack.Pop();
+                ModificarVariable(variable, valor);
+            }
+            else if (getContenido() == "++")
+            {
+                match("++");
+                IncrementarVariable(variable, 1);
+            }
+            else if (getContenido() == "--")
+            {
+                match("--");
+                IncrementarVariable(variable, -1);
+            }
+            else if (getContenido() == "+=")
+            {
+                match("+=");
+                Expresion();
+                float valor = stack.Pop();
+                ModificarVariable(variable, getValor(variable) + valor);
+            }
+            else if (getContenido() == "-=")
+            {
+                match("-=");
+                Expresion();
+                float valor = stack.Pop();
+                ModificarVariable(variable, getValor(variable) - valor);
+            }
+            // Agrega casos para otros operadores de asignación aquí
+            else
+            {
+                throw new Error("de sintaxis, se esperaba un operador de asignación válido", log, linea, columna);
+            }
+
+            match(";");
         }
-    }
-}
+
+        private void IncrementarVariable(string variable, float incremento)
+        {
+            float valor = getValor(variable);
+            ModificarVariable(variable, valor + incremento);
+        }
+
+        private void ModificarVariable(string variable, float nuevoValor)
+        {
+            foreach (Variable v in lista)
+            {
+                if (v.getNombre() == variable)
+                {
+                    v.setValor(nuevoValor);
+                    return;
+                }
+            }
+        }
         //While -> while(Condicion) BloqueInstrucciones | Instruccion
         private void While(bool ejecuta)
         {
@@ -354,51 +354,96 @@ private void ModificarVariable(string variable, float nuevoValor)
 
             switch (operador)
             {
-                case "==" : return R2==R1;
-                case ">"  : return R2>R1;
-                case ">=" : return R2>=R1;
-                case "<"  : return R2<R1;
-                case "<=" : return R2<=R1;
-                default   : return R2!=R1;
+                case "==": return R2 == R1;
+                case ">": return R2 > R1;
+                case ">=": return R2 >= R1;
+                case "<": return R2 < R1;
+                case "<=": return R2 <= R1;
+                default: return R2 != R1;
             }
         }
         //If -> if (Condicion) BloqueInstrucciones | Instruccion (else BloqueInstrucciones | Instruccion)?
- // ...
+        // ...
 
-//If -> if (Condicion) BloqueInstrucciones (else BloqueInstrucciones | Instruccion)?
+        //If -> if (Condicion) BloqueInstrucciones (else BloqueInstrucciones | Instruccion)?
 private void If(bool ejecuta)
 {
     match("if");
     match("(");
-    bool evaluacion = Condicion() && ejecuta;
-    Console.WriteLine(evaluacion);
+    bool evaluacion = Condicion();
     match(")");
+
+    // Almacenar el estado actual de las variables antes de entrar al bloque if-else
+    List<Variable> estadoAntes = new List<Variable>(lista);
+
+    bool ejecutarBloqueIf = ejecuta && evaluacion; // Controla si se ejecuta el bloque "if"
+    bool ejecutarBloqueElse = ejecuta && !evaluacion; // Controla si se ejecuta el bloque "else"
+
+    // Verificar si hay un "else" anidado
     if (getContenido() == "{")
     {
-        BloqueInstrucciones(evaluacion);
-    }
-    else
-    {
-        Instruccion(evaluacion);
-    }
-
-    // Aquí agregamos el código para manejar el "else"
-    if (getContenido() == "else")
-    {
-        match("else");
-
-        if (getContenido() == "{")
+        if (ejecutarBloqueIf)
         {
-            BloqueInstrucciones(!ejecuta);
+            BloqueInstrucciones(true);
         }
         else
         {
-            Instruccion(!ejecuta);
+            BloqueInstrucciones(false);
+        }
+    }
+    else
+    {
+        if (ejecutarBloqueIf)
+        {
+            Instruccion(true);
+        }
+        else
+        {
+            Instruccion(false);
+        }
+    }
+
+    // Restaurar el estado de las variables después de salir del bloque if-else
+    if (getContenido() == "else")
+    {
+        lista = estadoAntes; // Restaurar las variables al estado anterior
+        match("else");
+
+        if (getContenido() == "if")
+        {
+            // Si se encuentra un "if" anidado, llamamos recursivamente a la función "If"
+            If(ejecutarBloqueElse && Condicion());
+        }
+        else if (getContenido() == "{")
+        {
+            if (ejecutarBloqueElse)
+            {
+                BloqueInstrucciones(true);
+            }
+            else
+            {
+                match("{");
+                while (getContenido() != "}")
+                {
+                    Instruccion(false); // No ejecutar las instrucciones del primer "else"
+                }
+                match("}");
+            }
+        }
+        else
+        {
+            if (ejecutarBloqueElse)
+            {
+                Instruccion(true);
+            }
+            else
+            {
+                Instruccion(false);
+            }
         }
     }
 }
-
-        private void Printf(bool ejecuta)
+private void Printf(bool ejecuta)
 {
     match("printf");
     match("(");
@@ -421,11 +466,48 @@ private void If(bool ejecuta)
 
         if (ejecuta)
         {
-            Console.Write(contenido);
+            // Parseamos la cadena de formato para encontrar las variables a imprimir
+            string[] partes = contenido.Split('%');
+            for (int i = 0; i < partes.Length; i++)
+            {
+                if (i == 0)
+                {
+                    Console.Write(partes[i]);
+                }
+                else
+                {
+                    char formato = partes[i][0];
+                    string variableNombre = partes[i].Substring(1); // Nombre de la variable
+
+                    // Buscamos la variable por nombre y la imprimimos si existe
+                    if (Existe(variableNombre))
+                    {
+                        float valor = getValor(variableNombre);
+                        switch (formato)
+                        {
+                            case 'd':
+                                Console.Write(valor); // Imprimir como número
+                                break;
+                            case 'f':
+                                Console.Write(valor); // Imprimir como número de punto flotante
+                                break;
+                            case 's':
+                                Console.Write(variableNombre); // Imprimir como cadena
+                                break;
+                            default:
+                                Console.Write("%" + partes[i]); // Mantener el formato original si no se reconoce
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        Console.Write("%" + partes[i]); // Mantener el formato original si la variable no existe
+                    }
+                }
+            }
         }
     }
     match(Tipos.Cadena);
-    // stack.Push(getValor(getContenido()));
 
     if (getContenido() == ",")
     {
@@ -434,9 +516,13 @@ private void If(bool ejecuta)
         if (!Existe(getContenido()))
         {
             throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
-        }else
+        }
+        else
         {
-            Console.WriteLine(getValor(getContenido()));
+            if (ejecuta)
+            {
+                Console.Write(getValor(getContenido()));
+            }
             match(Tipos.Identificador);
         }
     }
@@ -445,43 +531,43 @@ private void If(bool ejecuta)
     match(";");
 }
         //Scanf -> scanf(cadena,&Identificador);
-private void Scanf(bool ejecuta)
-{
-    match("scanf");//Valida el Scanf
-    match("(");
-    match(Tipos.Cadena);//Busca la cadena ingresada
-    match(",");
-    match("&");//Termina la validacion del scanf
-    if (!Existe(getContenido()))
-    {
-        throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
-    }
+        private void Scanf(bool ejecuta)
+        {
+            match("scanf");//Valida el Scanf
+            match("(");
+            match(Tipos.Cadena);//Busca la cadena ingresada
+            match(",");
+            match("&");//Termina la validacion del scanf
+            if (!Existe(getContenido()))
+            {
+                throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
+            }
 
-    string variable = getContenido();// Guarda la variable
-    match(Tipos.Identificador);
-    if (ejecuta)
-    {
-        string captura = Console.ReadLine();//Guardamos captura
-        if (captura != null)// Verifica que captura no este vacio
-        {
-            try
+            string variable = getContenido();// Guarda la variable
+            match(Tipos.Identificador);
+            if (ejecuta)
             {
-                float resultado = float.Parse(captura);
-                Modifica(variable, resultado);
+                string captura = Console.ReadLine();//Guardamos captura
+                if (captura != null)// Verifica que captura no este vacio
+                {
+                    try
+                    {
+                        float resultado = float.Parse(captura);
+                        Modifica(variable, resultado);
+                    }
+                    catch (FormatException)
+                    {
+                        throw new Error("de conversión, la entrada no es un número decimal válido", log, linea, columna);
+                    }
+                }
+                else
+                {
+                    throw new Error("de lectura, la entrada no puede ser nula", log, linea, columna);
+                }
             }
-            catch (FormatException)
-            {
-                throw new Error("de conversión, la entrada no es un número decimal válido", log, linea, columna);
-            }
+            match(")");
+            match(";");
         }
-        else
-        {
-            throw new Error("de lectura, la entrada no puede ser nula", log, linea, columna);
-        }
-    }
-    match(")");
-    match(";");
-}
 
         //Main -> void main() BloqueInstrucciones
         private void Main(bool ejecuta)
@@ -511,9 +597,9 @@ private void Scanf(bool ejecuta)
                 float R2 = stack.Pop();
                 float R1 = stack.Pop();
                 if (operador == "+")
-                    stack.Push(R1+R2);
+                    stack.Push(R1 + R2);
                 else
-                    stack.Push(R1-R2);
+                    stack.Push(R1 - R2);
             }
         }
         //Termino -> Factor PorFactor
@@ -524,30 +610,30 @@ private void Scanf(bool ejecuta)
         }
         //PorFactor -> (OperadorFactor Factor)?
         private void PorFactor()
-{
-    if (getClasificacion() == Tipos.OperadorFactor)
-    {
-        string operador = getContenido();
-        match(Tipos.OperadorFactor);
-        Factor();
-        log.Write(" " + operador);
-        float R2 = stack.Pop();
-        float R1 = stack.Pop();
-        
-        if (operador == "*")
         {
-            stack.Push(R1 * R2);
+            if (getClasificacion() == Tipos.OperadorFactor)
+            {
+                string operador = getContenido();
+                match(Tipos.OperadorFactor);
+                Factor();
+                log.Write(" " + operador);
+                float R2 = stack.Pop();
+                float R1 = stack.Pop();
+
+                if (operador == "*")
+                {
+                    stack.Push(R1 * R2);
+                }
+                else if (operador == "/")
+                {
+                    stack.Push(R1 / R2);
+                }
+                else if (operador == "%") // Agregar la operación de módulo (%)
+                {
+                    stack.Push(R1 % R2);
+                }
+            }
         }
-        else if (operador == "/")
-        {
-            stack.Push(R1 / R2);
-        }
-        else if (operador == "%") // Agregar la operación de módulo (%)
-        {
-            stack.Push(R1 % R2);
-        }
-    }
-}
 
         //Factor -> numero | identificador | (Expresion)
         private void Factor()
@@ -564,7 +650,7 @@ private void Scanf(bool ejecuta)
                 {
                     throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
                 }
-               
+
                 stack.Push(getValor(getContenido()));
                 match(Tipos.Identificador);
             }
