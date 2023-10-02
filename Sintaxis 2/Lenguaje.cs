@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 /*
     Requerimiento 1: Implementar la ejecucion del while :D 
-    Requerimiento 2: Implemenatr la ejecicion del do - while
+    Requerimiento 2: Implemenatr la ejecicion del do - while :D
     Requerimiento 3: Implementar la ejecucion del for :D
     Requerimiento 4: Marcar errores semánticos 
     Requerimiento 5: CAST :D
@@ -238,6 +238,7 @@ namespace Sintaxis_2
             {
                 throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
             }
+
             log.Write(getContenido() + " = ");
             string variable = getContenido();
             match(Tipos.Identificador);
@@ -300,9 +301,9 @@ namespace Sintaxis_2
                 Variable.TiposDatos tipoDatoVariable = getTipo(variable);
                 Variable.TiposDatos tipoDatoResultado = getTipo(resultado);
 
-                //Console.WriteLine(variable + " = "+tipoDatoVariable);
-                //Console.WriteLine(resultado + " = "+tipoDatoResultado);
-                //Console.WriteLine("expresion = "+tipoDatoExpresion);
+                Console.WriteLine(variable + " = "+tipoDatoVariable);
+                Console.WriteLine(resultado + " = "+tipoDatoResultado);
+                Console.WriteLine("expresion = "+tipoDatoExpresion);
 
                 //Variable.TiposDatos tipoDatoMayor = 
 
@@ -313,6 +314,14 @@ namespace Sintaxis_2
                 else
                 {
                     throw new Error("de semantica, no se puede asignar in <" + tipoDatoResultado + "> a un <" + tipoDatoVariable + ">", log, linea, columna);
+                }
+                if (tipoDatoExpresion < tipoDatoVariable) 
+                {
+                    //Modifica(variable, resultado);
+               }
+                else
+                {
+                    throw new Error("de semantica, no se puede asignar un <" + tipoDatoExpresion + "> a un <" + tipoDatoVariable+ ">", log, linea, columna);
                 }
             }
             match(";");
@@ -353,6 +362,10 @@ namespace Sintaxis_2
         private void Do(bool ejecuta)
         {
             match("do");
+             int inicia = caracter;
+            int lineaInicio = linea;
+            string variable = getContenido();
+            do{
             if (getContenido() == "{")
             {
                 BloqueInstrucciones(ejecuta);
@@ -363,9 +376,19 @@ namespace Sintaxis_2
             }
             match("while");
             match("(");
-            Condicion();
+            ejecuta=Condicion()&& ejecuta;
             match(")");
             match(";");
+            if (ejecuta)
+                {
+                    archivo.DiscardBufferedData();
+                    caracter = inicia - variable.Length - 1;
+                    archivo.BaseStream.Seek(caracter, SeekOrigin.Begin);
+                    nextToken();
+                    linea = lineaInicio;
+                }
+            }
+            while (ejecuta);  
         }
         //For -> for(Asignacion Condicion; Incremento) BloqueInstrucciones | Instruccion
 
