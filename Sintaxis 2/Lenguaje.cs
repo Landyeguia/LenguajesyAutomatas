@@ -238,7 +238,6 @@ namespace Sintaxis_2
             {
                 throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
             }
-
             log.Write(getContenido() + " = ");
             string variable = getContenido();
             match(Tipos.Identificador);
@@ -301,13 +300,13 @@ namespace Sintaxis_2
                 Variable.TiposDatos tipoDatoVariable = getTipo(variable);
                 Variable.TiposDatos tipoDatoResultado = getTipo(resultado);
 
-                Console.WriteLine(variable + " = "+tipoDatoVariable);
-                Console.WriteLine(resultado + " = "+tipoDatoResultado);
-                Console.WriteLine("expresion = "+tipoDatoExpresion);
+                //Console.WriteLine(variable + " = "+tipoDatoVariable);
+                //Console.WriteLine(resultado + " = "+tipoDatoResultado);
+                //Console.WriteLine("expresion = "+tipoDatoExpresion);
 
                 //Variable.TiposDatos tipoDatoMayor = 
 
-                if (tipoDatoVariable >= tipoDatoResultado)
+                if (tipoDatoVariable >= tipoDatoResultado )
                 {
                     Modifica(variable, resultado);
                 }
@@ -315,13 +314,13 @@ namespace Sintaxis_2
                 {
                     throw new Error("de semantica, no se puede asignar in <" + tipoDatoResultado + "> a un <" + tipoDatoVariable + ">", log, linea, columna);
                 }
-                if (tipoDatoExpresion < tipoDatoVariable) 
+                if (tipoDatoExpresion<= tipoDatoVariable)
                 {
-                    //Modifica(variable, resultado);
-               }
+                    Modifica(variable, resultado);
+                }
                 else
                 {
-                    throw new Error("de semantica, no se puede asignar un <" + tipoDatoExpresion + "> a un <" + tipoDatoVariable+ ">", log, linea, columna);
+                    throw new Error("de semantica, no se puede asignar un <" + tipoDatoExpresion + "> a un <" + tipoDatoVariable + ">", log, linea, columna);
                 }
             }
             match(";");
@@ -349,7 +348,7 @@ namespace Sintaxis_2
                 if (ejecuta)
                 {
                     archivo.DiscardBufferedData();
-                    caracter = inicia - variable.Length - 1;
+                    caracter = inicia - variable.Length;
                     archivo.BaseStream.Seek(caracter, SeekOrigin.Begin);
                     nextToken();
                     linea = lineaInicio;
@@ -362,24 +361,25 @@ namespace Sintaxis_2
         private void Do(bool ejecuta)
         {
             match("do");
-             int inicia = caracter;
+            int inicia = caracter;
             int lineaInicio = linea;
             string variable = getContenido();
-            do{
-            if (getContenido() == "{")
+            do
             {
-                BloqueInstrucciones(ejecuta);
-            }
-            else
-            {
-                Instruccion(ejecuta);
-            }
-            match("while");
-            match("(");
-            ejecuta=Condicion()&& ejecuta;
-            match(")");
-            match(";");
-            if (ejecuta)
+                if (getContenido() == "{")
+                {
+                    BloqueInstrucciones(ejecuta);
+                }
+                else
+                {
+                    Instruccion(ejecuta);
+                }
+                match("while");
+                match("(");
+                ejecuta = Condicion() && ejecuta;
+                match(")");
+                match(";");
+                if (ejecuta)
                 {
                     archivo.DiscardBufferedData();
                     caracter = inicia - variable.Length - 1;
@@ -388,7 +388,7 @@ namespace Sintaxis_2
                     linea = lineaInicio;
                 }
             }
-            while (ejecuta);  
+            while (ejecuta);
         }
         //For -> for(Asignacion Condicion; Incremento) BloqueInstrucciones | Instruccion
 
@@ -420,7 +420,17 @@ namespace Sintaxis_2
                 }
                 if (ejecuta)
                 {
-                    Modifica(variable, resultado);
+                    // Verificar si se debe lanzar una excepción
+                    Variable.TiposDatos tipoDatoVariable = getTipo(variable);
+                    Variable.TiposDatos tipoDatoResultado = getTipo(resultado);
+                    if (tipoDatoVariable >= tipoDatoResultado)
+                    {
+                        Modifica(variable, resultado);
+                    }
+                    else
+                    {
+                        throw new Exception("Error semántico: No se puede asignar un tipo " + tipoDatoResultado + " a un tipo " + tipoDatoVariable);
+                    }
                     archivo.DiscardBufferedData();
                     caracter = inicia - variable.Length - 1;
                     archivo.BaseStream.Seek(caracter, SeekOrigin.Begin);
@@ -521,7 +531,10 @@ namespace Sintaxis_2
                 {
                     throw new Error("de sintaxis, la variable <" + getContenido() + "> no está declarada", log, linea, columna);
                 }
-                Console.Write(getValor(getContenido()));
+                if (ejecuta)
+                {
+                    Console.Write(getValor(getContenido()));
+                }
                 match(Tipos.Identificador);
             }
             match(")");
@@ -545,6 +558,16 @@ namespace Sintaxis_2
             {
                 string captura = "" + Console.ReadLine();
                 float resultado = float.Parse(captura);
+                Variable.TiposDatos tipoDatoVariable = getTipo(variable);
+                Variable.TiposDatos tipoDatoResultado = getTipo(resultado);
+                 if (tipoDatoVariable >= tipoDatoResultado)
+                {
+                    Modifica(variable, resultado);
+                }
+                else
+                {
+                    throw new Error("de semantica, no se puede asignar in <" + tipoDatoResultado + "> a un <" + tipoDatoVariable + ">", log, linea, columna);
+                }
                 Modifica(variable, resultado);
             }
             match(")");
