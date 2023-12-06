@@ -1,5 +1,0 @@
-Autor: Guillermo Fernandez Romero
-Fecha: 3-Mayo-2023 15:09
-c =  20 = 20
-a =  + = 20
-Error: de semantica, no se puede asignar un <Float> a un <Char> en la linea 13 columna 41
